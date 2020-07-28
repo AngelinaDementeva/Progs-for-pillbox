@@ -1,0 +1,89 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
+using System.Configuration;
+using System.Data;
+
+
+
+namespace WindowsFormsApp2
+{
+    public class MySQL
+    {
+        private MySqlConnection connection;
+        ParseMySQL parsemysql;
+        string Connect;
+        string time;
+
+
+        public MySQL()
+        {
+            MySqlConnectionStringBuilder builder = new MySqlConnectionStringBuilder();
+            parsemysql = new ParseMySQL(ConfigurationManager.AppSettings["dbsettings"]);
+            builder.Server = parsemysql.Server;
+            builder.Database = parsemysql.Database;
+            builder.UserID = parsemysql.UserID;
+            builder.Password = parsemysql.Password;
+            builder.CharacterSet = parsemysql.CharacterSet;
+            Connect = builder.ConnectionString;
+
+        }
+
+        public void OpenMySQL()
+        {
+            connection = new MySqlConnection(Connect);
+            connection.Open();
+
+        }
+        public void CloseMySQL()
+        {
+            connection = new MySqlConnection(Connect);
+            connection.Open();
+
+        }
+        public List<string[]> FreeCommand(string command, out List<string[]> list)
+        {
+            MySqlCommand execute = new MySqlCommand(command, connection);
+            MySqlDataReader read = execute.ExecuteReader();
+            list = new List<string[]>();
+            while (read.Read())
+            {
+                list.Add(new string[5]);
+                for (int i = 0; i < 5; i++)
+                {
+                    list[list.Count - 1][i] = read[i].ToString();
+                }
+            }
+            read.Close();
+            return list;
+
+        }
+
+        public DataTable Get_Times(string command)
+        {
+            DataTable private_table = new DataTable();
+
+
+            MySqlCommand execute = new MySqlCommand(command, connection);
+            MySqlDataAdapter adap = new MySqlDataAdapter(execute);
+            adap.Fill(private_table);
+            return private_table;
+        }
+        public void Write_to_table(int ncase)
+        {
+            time = DateTime.Now.ToString("yyyy-MM-dd H:mm:ss");
+            string command = @"insert into `pillbox` Set " +
+
+                "Time='" + time + "',"+
+                "Numbercas_case='"+ncase.ToString()+"'";
+
+            MySqlCommand execute = new MySqlCommand(command, connection);
+            execute.ExecuteNonQuery();
+
+
+        }
+    }
+}
